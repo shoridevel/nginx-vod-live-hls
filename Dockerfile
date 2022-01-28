@@ -1,14 +1,14 @@
-ARG NGINX_VERSION=1.16.0
-ARG NGINX_RTMP_VERSION=1.2.1
-ARG FFMPEG_VERSION=4.2
-ARG NGINX_VOD_VERSION=1.24
+ARG NGINX_VERSION=1.21.6
+ARG NGINX_RTMP_VERSION=1.2.2
+ARG FFMPEG_VERSION=4.4.1
+ARG NGINX_VOD_VERSION=1.29
 
 ##############################
 # Build the NGINX-build image.
 FROM alpine:3.8 as build-nginx
 ARG NGINX_VERSION
 ARG NGINX_RTMP_VERSION
-
+ARG NGINX_VOD_VERSION
 
 # Build dependencies.
 RUN apk add --update \
@@ -37,19 +37,19 @@ RUN cd /tmp && \
 
 # Get VOD module
 RUN cd /tmp && \
-  curl -OLs http://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz && \
-  tar zxf 1.24.tar.gz && rm 1.24.tar.gz
+  curl -OLs http://github.com/kaltura/nginx-vod-module/archive/${NGINX_VOD_VERSION}.tar.gz && \
+  tar zxf ${NGINX_VOD_VERSION}.tar.gz && rm ${NGINX_VOD_VERSION}.tar.gz
 
 # Get nginx-rtmp module.
 RUN cd /tmp && \
- curl -OLs https://github.com/arut/nginx-rtmp-module/archive/v1.2.1.tar.gz && \
+ curl -OLs https://github.com/arut/nginx-rtmp-module/archive/v${NGINX_RTMP_VERSION}.tar.gz && \
  tar zxf v${NGINX_RTMP_VERSION}.tar.gz && rm v${NGINX_RTMP_VERSION}.tar.gz
 
 # Compile nginx with nginx-rtmp module.
 RUN cd /tmp/nginx-${NGINX_VERSION} && \
   ./configure \
   --prefix=/opt/nginx \
-  --add-module=/tmp/nginx-vod-module-1.24 \
+  --add-module=/tmp/nginx-vod-module-${NGINX_VOD_VERSION} \
   --add-module=/tmp/nginx-rtmp-module-${NGINX_RTMP_VERSION} \
   --conf-path=/opt/nginx/nginx.conf \
   --with-threads \
@@ -90,7 +90,7 @@ RUN apk add --update \
   x265-dev \
   yasm
 
-RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories
 RUN apk add --update fdk-aac-dev
 
 # Get FFmpeg source.
